@@ -30,7 +30,7 @@
   
   /**
    * Use the main server root to
-   * list all the books 
+   * list all the files 
    */
   app.get('/create', function (req, res) {
   
