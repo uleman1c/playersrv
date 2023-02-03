@@ -76,7 +76,7 @@
    * Therefore , run the listen server on port 80 
    */
   
-  app.listen( 3000, function () {
+  app.listen( 3001, function () {
       console.log('Player server ready');
   });
   
