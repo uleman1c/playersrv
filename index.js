@@ -61,7 +61,7 @@
           /**
            * Send all the lines in the “book” table
            */
-          res.send( rows );
+          res.send( { rows: rows } );
       });
   
   });
