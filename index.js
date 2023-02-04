@@ -6,6 +6,8 @@
   var sqlite3 = require('sqlite3').verbose();
   
   var uuid = require('uuid');
+
+  const path = require('path')
   
   /**
    * At this point create a database in memory ( i.e. 
@@ -66,12 +68,19 @@
   
   });
   
+app.get('/test', function (req, res) {
+  
+    res.send( path.join(__dirname, "files") )
+
+})
+
   app.get('/file', function (req, res) {
   
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
-                let filespath = '.\\files\\'
+
+                let filespath = path.join(__dirname, "files", req.query.id + '.' + rows[0].ext)
 
                 //res.send( filespath + req.query.id + '.' + rows[0].ext );
 
@@ -79,7 +88,7 @@
                 res.setHeader("Content-Type", "application/octet-stream")
                 //res.setHeader("Content-Disposition", "attachment; filename=" + encodeURIComponent(req.query.full_name + '.' + req.query.ext))
                 
-                return res.download(filespath + req.query.id + '.' + rows[0].ext, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
+                return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
     
     
 
