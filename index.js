@@ -66,6 +66,27 @@
   
   });
   
+  app.get('/file', function (req, res) {
+  
+        db.prepare(`SELECT * FROM files where id = ?`)
+            .all(req.query.id , (err,rows) => {
+  
+                let filespath = '.\\files\\'
+
+                //res.send( filespath + req.query.id + '.' + rows[0].ext );
+
+
+                res.setHeader("Content-Type", "application/octet-stream")
+                //res.setHeader("Content-Disposition", "attachment; filename=" + encodeURIComponent(req.query.full_name + '.' + req.query.ext))
+                
+                return res.download(filespath + req.query.id + '.' + rows[0].ext, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
+    
+    
+
+      });
+  
+  });
+  
   /**
    * Use this path to save, instead:
    * /save/ followed by title and author
