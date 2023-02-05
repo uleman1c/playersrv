@@ -85,8 +85,8 @@ function addFileToBase(mFiles, index, callback, callbackerror) {
 
               let curId = uuid.v4()
 
-              db.prepare("INSERT INTO files VALUES (?, ?, ?, ?)")
-                .run(curId, curFile.name, curFile.ext, curFile.style, (err,rows) =>{
+              db.prepare("INSERT INTO files VALUES (?, ?, ?, ?, ?)")
+                .run(curId, curFile.name, curFile.ext, curFile.style, '', (err,rows) =>{
           
                   if (err) {
                     
@@ -131,11 +131,11 @@ app.get('/test', function (req, res) {
   readCatalog(mFiles, filespath, '')
 
   addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
-
+ 
 
   /*
-  let sqltext = 'ALTER TABLE files ADD style text, description TEXT ; update files set style = \'\', description = \'\''
-  //let sqltext = 'update files set style = \'\', description = \'\''
+  //let sqltext = 'ALTER TABLE files ADD style text;' // update files set style = \'\', description = \'\''
+  let sqltext = 'update files set style = \'\', description = \'\''
 
      db.run(sqltext, (err,rows) => {
 
@@ -148,7 +148,7 @@ app.get('/test', function (req, res) {
         }
 
       });
-      */
+   */   
    
 })
 
