@@ -30,7 +30,7 @@
   
   app.get('/', function (req, res) {
   
-        db.all(`SELECT * FROM files` , (err,rows) => {
+        db.all(`SELECT * FROM files limit 100` , (err,rows) => {
   
           res.send( { rows: rows } );
       });
