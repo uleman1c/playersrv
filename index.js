@@ -37,16 +37,104 @@
   
   });
   
-app.get('/test', function (req, res) {
+function readCatalog(mFiles, curPath, curCat) {
   
-/*   let filespath = path.join(__dirname, "files")
+  let filespath = path.join(curPath, curCat)
 
   const dirEntries = fs.readdirSync(filespath, {withFileTypes: true})
 
+    dirEntries.forEach(element => {
 
-  res.send( dirEntries );
- */
-  let sqltext = 'ALTER TABLE files ADD style text, description TEXT ; update files set style = \'\', description = \'\';'
+      if (element.isDirectory()) {
+        
+        readCatalog(mFiles, filespath, element.name)
+
+      } else {
+
+
+        let filename = element.name.split('.')
+        let ext = filename[filename.length - 1]
+        filename.splice(filename.length - 1, 1)
+
+        let name = filename.join('.')
+
+        mFiles.push({ name: name, ext: ext, style: curCat, path: filespath })
+      }
+
+
+      
+    });
+}
+
+function addFileToBase(mFiles, index, callback, callbackerror) {
+
+  if (index < mFiles.length) {
+    
+      let curFile = mFiles[index]
+
+      db.prepare(`SELECT id FROM files where id = ?`)
+        .all(curFile.name, (err,rows) => {
+
+          if (err) {
+
+            callbackerror( err )
+            
+          } else {
+
+            if (rows.length == 0) {
+
+              let curId = uuid.v4()
+
+              db.prepare("INSERT INTO files VALUES (?, ?, ?, ?)")
+                .run(curId, curFile.name, curFile.ext, curFile.style, (err,rows) =>{
+          
+                  if (err) {
+                    
+                    callbackerror( err )
+                    
+                  } else {
+
+                    fs.renameSync(path.join(curFile.path, curFile.name + '.' + curFile.ext), path.join(__dirname, "files", curId + '.' + curFile.ext));
+
+                    addFileToBase(mFiles, index + 1, callback, callbackerror) 
+                    
+                  }
+
+                }).finalize();              
+
+              
+            } else {
+
+              addFileToBase(mFiles, index + 1, callback, callbackerror)
+
+            }
+            
+          }
+
+        })
+
+  } else {
+    
+    callback()
+  
+  }
+  
+}
+
+app.get('/test', function (req, res) {
+  
+   let filespath = path.join(__dirname, "files")
+
+
+  let mFiles = []
+
+  readCatalog(mFiles, filespath, '')
+
+  addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
+
+
+  /*
+  let sqltext = 'ALTER TABLE files ADD style text, description TEXT ; update files set style = \'\', description = \'\''
   //let sqltext = 'update files set style = \'\', description = \'\''
 
      db.run(sqltext, (err,rows) => {
@@ -60,6 +148,7 @@ app.get('/test', function (req, res) {
         }
 
       });
+      */
    
 })
 
