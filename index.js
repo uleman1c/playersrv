@@ -7,6 +7,8 @@
   const path = require('path')
   
   var db = new sqlite3.Database('player.db');
+
+  var fs = require('fs')
   
   var app = express();
   
@@ -37,6 +39,28 @@
   
 app.get('/test', function (req, res) {
   
+/*   let filespath = path.join(__dirname, "files")
+
+  const dirEntries = fs.readdirSync(filespath, {withFileTypes: true})
+
+
+  res.send( dirEntries );
+ */
+  let sqltext = 'ALTER TABLE files ADD style text, description TEXT ; update files set style = \'\', description = \'\';'
+  //let sqltext = 'update files set style = \'\', description = \'\''
+
+     db.run(sqltext, (err,rows) => {
+
+        if (err) {
+            
+          res.send( err );
+        } else {
+            
+          res.send( 'ok' );
+        }
+
+      });
+   
 })
 
   app.get('/file', function (req, res) {
