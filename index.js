@@ -175,7 +175,7 @@ app.get('/styles', function (req, res) {
           res.send( err );
         } else {
             
-          res.send( rows );
+          res.send( { rows: rows } );
         }
 
       });
