@@ -28,10 +28,7 @@
   
   });
   
-  app.get('/', function (req, res) {
-  
-        db.all(`SELECT * FROM files limit 100` + (req.query.style ? ' where style = ' + req.query.style : '') , (err,rows) => {
-
+  function sendRowsOrErr(res, err,rows) {
           if (err) {
             
             res.send( { err: err } );
@@ -40,8 +37,22 @@
             res.send( { rows: rows } );
           }
   
-      });
+    
+  }
+
+  app.get('/', function (req, res) {
   
+    if (req.query.style) {
+      
+        db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style] , (err,rows) => { sendRowsOrErr(res, err, rows) });
+  
+    } else {
+      
+        db.prepare(`SELECT * FROM files limit 100`)
+          .all((err,rows) => { sendRowsOrErr(res, err, rows) });
+  
+    }
+
   });
   
 function readCatalog(mFiles, curPath, curCat) {
