@@ -123,17 +123,30 @@ function addFileToBase(mFiles, index, callback, callbackerror) {
 
 app.get('/test', function (req, res) {
   
-   let filespath = path.join(__dirname, "files")
+  
 
+/*   let filespath = path.join(__dirname, "files")
 
   let mFiles = []
 
   readCatalog(mFiles, filespath, '')
 
   addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
- 
+ */ 
 
-  /*
+    let sqltext = 'select style from files group by style order by style'
+     db.all(sqltext, (err,rows) => {
+
+        if (err) {
+            
+          res.send( err );
+        } else {
+            
+          res.send( rows );
+        }
+
+      });
+ /* 
   //let sqltext = 'ALTER TABLE files ADD style text;' // update files set style = \'\', description = \'\''
   let sqltext = 'update files set style = \'\', description = \'\''
 
@@ -149,6 +162,23 @@ app.get('/test', function (req, res) {
 
       });
    */   
+   
+})
+
+app.get('/styles', function (req, res) {
+
+    let sqltext = 'select style as name from files group by style order by style'
+     db.all(sqltext, (err,rows) => {
+
+        if (err) {
+            
+          res.send( err );
+        } else {
+            
+          res.send( rows );
+        }
+
+      });
    
 })
 
