@@ -31,8 +31,15 @@
   app.get('/', function (req, res) {
   
         db.all(`SELECT * FROM files limit 100` + (req.query.style ? ' where style = ' + req.query.style : '') , (err,rows) => {
+
+          if (err) {
+            
+            res.send( { err: err } );
+          } else {
+            
+            res.send( { rows: rows } );
+          }
   
-          res.send( { rows: rows } );
       });
   
   });
