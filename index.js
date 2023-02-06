@@ -28,13 +28,29 @@
   
   });
   
+  function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+  
+    while (0 !== currentIndex) {
+  
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+  
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
+  }
+
   function sendRowsOrErr(res, err,rows) {
           if (err) {
             
             res.send( { err: err } );
           } else {
             
-            res.send( { rows: rows } );
+            res.send( { rows: shuffle(rows) } );
           }
   
     
@@ -48,8 +64,7 @@
   
     } else {
       
-        db.prepare(`SELECT * FROM files limit 100`)
-          .all((err,rows) => { sendRowsOrErr(res, err, rows) });
+        db.all(`SELECT * FROM files limit 100`, [], (err,rows) => { sendRowsOrErr(res, err, rows) });
   
     }
 
