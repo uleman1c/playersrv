@@ -270,7 +270,49 @@ app.get('/styles', function (req, res) {
 
   app.get('/file', function (req, res) {
   
+    saveRequest(req, () => {
         db.prepare(`SELECT * FROM files where id = ?`)
+            .all(req.query.id , (err,rows) => {
+  
+
+                let filespath = path.join(__dirname, "files", req.query.id + '.' + rows[0].ext)
+
+                res.setHeader("Content-Type", "application/octet-stream")
+                
+                return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
+
+          }
+        )
+    }, err => { res.send( err ) } )
+
+        
+  })
+  
+function saveRequest(req, callback, callbackerror) {
+
+  let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
+
+  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, req.body ? req.body : ''], (err,rows) => {
+
+     if (err) {
+         
+      callbackerror( err )
+
+     } else {
+         
+      callback()
+
+     }
+
+   })
+
+
+}
+
+  app.post('/file', function (req, res) {
+  
+    saveRequest(req, () => {
+      db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
 
@@ -282,7 +324,7 @@ app.get('/styles', function (req, res) {
     
     
 
-      });
+      })}, err => { res.send( err ) } )
   
   });
   
