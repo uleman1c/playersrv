@@ -298,7 +298,7 @@ function saveRequest(req, callback, callbackerror) {
 
   let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
 
-  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, req.body ? req.body : ''], (err,rows) => {
+  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, req.body ? JSON.stringify(req.body) : ''], (err,rows) => {
 
      if (err) {
          
