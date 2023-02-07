@@ -276,7 +276,7 @@ app.get('/styles', function (req, res) {
 
   app.get('/file', function (req, res) {
   
-    saveRequest(req, () => {
+    //saveRequest(req, () => {
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
@@ -289,7 +289,7 @@ app.get('/styles', function (req, res) {
 
           }
         )
-    }, err => { res.send( err ) } )
+    //}, err => { res.send( err ) } )
 
         
   })
