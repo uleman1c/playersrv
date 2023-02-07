@@ -276,7 +276,7 @@ app.get('/styles', function (req, res) {
 
   app.get('/file', function (req, res) {
   
-    //saveRequest(req, () => {
+    saveRequest(req, () => {
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
@@ -289,7 +289,7 @@ app.get('/styles', function (req, res) {
 
           }
         )
-    //}, err => { res.send( err ) } )
+    }, err => { res.send( err ) } )
 
         
   })
@@ -300,7 +300,7 @@ function saveRequest(req, callback, callbackerror) {
 
   let jb = req.body
 
-  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), jb ? jb.appId : '', req.originalUrl, jb ? JSON.stringify(jb) : ''], (err,rows) => {
+  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), jb && jb.appId ? jb.appId : '', req.originalUrl, jb ? JSON.stringify(jb) : ''], (err,rows) => {
 
      if (err) {
          
