@@ -241,7 +241,7 @@ app.get('/test', function (req, res) {
 
 app.get('/requests', function (req, res) {
   
-    let sqltext = 'select * from requests'
+    let sqltext = 'select * from requests order by date desc'
      db.all(sqltext, (err,rows) => {
 
         if (err) {
