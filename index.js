@@ -3,7 +3,8 @@
   var sqlite3 = require('sqlite3').verbose();
   
   var uuid = require('uuid');
-
+  var bodyParser = require('body-parser')
+  var cors = require('cors')
   const path = require('path')
   
   var db = new sqlite3.Database('player.db');
@@ -12,6 +13,11 @@
   
   var app = express();
   
+  app.use(cors())
+  app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
+  app.use(bodyParser.json({limit: '50mb'}))
+  app.use(bodyParser.raw({limit: '50mb'}))
+
   app.get('/create', function (req, res) {
   
     let sqltext = 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null)'
