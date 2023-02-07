@@ -14,7 +14,10 @@
   
   app.get('/create', function (req, res) {
   
-    db.run('CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null)', (err,rows) => {
+    let sqltext = 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null)'
+    //let sqltext = 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null)'
+
+    db.run(sqltext, (err,rows) => {
 
         if (err) {
             
@@ -154,6 +157,36 @@ function addFileToBase(mFiles, index, callback, callbackerror) {
   
 }
 
+function dateToObjDateTime(date) {
+    
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1; // getMonth() is zero-based
+  var day = date.getDate();
+  var hour = date.getHours();
+  var minute = date.getMinutes();
+  var second = date.getSeconds();
+
+  var strMonth = (month < 10 ? '0' : '') + String(month)
+  var strDay = (day < 10 ? '0' : '') + String(day)
+  var strHour = (hour < 10 ? '0' : '') + String(hour)
+  var strMinute = (minute < 10 ? '0' : '') + String(minute)
+  var strSecond = (second < 10 ? '0' : '') + String(second)
+
+  return { year: String(year), month: strMonth, day: strDay, hour: strHour, minute: strMinute, second: strSecond}
+
+}
+
+function dateToYMDHMS(date) {
+
+  var dataobj = dateToObjDateTime(date)
+
+  return dataobj.year + dataobj.month + dataobj.day + dataobj.hour + dataobj.minute + dataobj.second
+  
+}
+
+
+
+
 app.get('/test', function (req, res) {
   
   
@@ -166,8 +199,8 @@ app.get('/test', function (req, res) {
 
   addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
  */ 
-
-    let sqltext = 'select style from files group by style order by style'
+/*
+    let sqltext = 'select * from requests'
      db.all(sqltext, (err,rows) => {
 
         if (err) {
@@ -179,11 +212,13 @@ app.get('/test', function (req, res) {
         }
 
       });
- /* 
-  //let sqltext = 'ALTER TABLE files ADD style text;' // update files set style = \'\', description = \'\''
-  let sqltext = 'update files set style = \'\', description = \'\''
+*/
 
-     db.run(sqltext, (err,rows) => {
+  
+  //let sqltext = 'ALTER TABLE files ADD style text;' // update files set style = \'\', description = \'\''
+  let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
+
+     db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
 
         if (err) {
             
@@ -194,7 +229,25 @@ app.get('/test', function (req, res) {
         }
 
       });
-   */   
+      
+   
+})
+
+app.get('/requests', function (req, res) {
+  
+    let sqltext = 'select * from requests'
+     db.all(sqltext, (err,rows) => {
+
+        if (err) {
+            
+          res.send( err );
+        } else {
+            
+          res.send( rows );
+        }
+
+      });
+      
    
 })
 
