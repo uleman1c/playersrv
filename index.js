@@ -300,7 +300,7 @@ function saveRequest(req, callback, callbackerror) {
 
   let jb = req.body
 
-  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), jb && jb.appId ? jb.appId : '', req.originalUrl, jb ? JSON.stringify(jb) : ''], (err,rows) => {
+  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), jb && jb.appId ? jb.appId : req.socket.remoteAddress, req.originalUrl, jb ? JSON.stringify(jb) : ''], (err,rows) => {
 
      if (err) {
          
