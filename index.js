@@ -100,7 +100,9 @@ app.post('/files', function (req, res) {
 
     let strNewOnly = newOnly ? 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' : ''
 
-    let sqltext = 'SELECT files.* FROM files ' + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
+    let sqltext = 'SELECT files.*, ifnull(favorites.id, 0) as favorite '
+      + ' FROM files left join favorites on favorites.file_id = files.id and favorites.appid = \'' + appId + '\' ' 
+      + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
 
     let params = jb && jb.params ? jb.params : []
 
@@ -359,8 +361,8 @@ app.get('/requests', function (req, res) {
 app.get('/favorites', function (req, res) {
 
   let sqltext = 'select favorites.id, favorites.file_id, files.name, files.ext, files.style, files.description '
-    + ' from favorites left join files on favorites.file_id = files.id'
-  dball(sqltext, [], rows => { res.send( rows ) }, err => { res.send( err ) })
+    + ' from favorites left join files on favorites.file_id = files.id where favorites.appid = ?'
+  dball(sqltext, [req.query.appid], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
   
 })
 
@@ -368,19 +370,36 @@ app.post('/favorites', function (req, res) {
 
   let jb = req.body
   
-  let params = [
-
-    uuid.v4(),
-    jb.appId,
-    jb.file_id
-
-  ]
-
   saveRequest(req, () => {
 
-    dbrun("INSERT INTO favorites (?, ?, ?)", params, () => { res.send( { result: true } ) }, 
-    
-      err => { res.send( { result: false, error: err } ) } )
+    if (jb.mode == 'add') {
+      
+      let params = [
+
+        uuid.v4(),
+        jb.appId,
+        jb.file_id
+
+      ]
+
+      dbrun('INSERT INTO favorites VALUES (?, ?, ?)', params, () => { res.send( { result: true } ) }, 
+      
+        err => { res.send( { result: false, error: err } ) } )
+
+    } else {
+      
+      let params = [
+
+        jb.appId,
+        jb.file_id
+
+      ]
+
+      dbrun("DELETE FROM favorites where appid = ? and file_id = ?", params, () => { res.send( { result: true } ) }, 
+      
+        err => { res.send( { result: false, error: err } ) } )
+
+    }
 
   }, err => { res.send( { result: false, error: err } ) } )
 
