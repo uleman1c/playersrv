@@ -79,6 +79,46 @@
 
   });
   
+app.post('/songs', function (req, res) {
+
+  saveRequest(req, () => {
+    
+    let jb = res.body
+
+    let limit = jb && jb.limit ? jb.limit : 100
+
+    let arWhere = jb && jb.where ? jb.where : []
+    let arOrder = jb && jb.order ? jb.order : []
+
+    let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
+    let strOrder = arOrder.length > 0 ? 'order by ' + arOrder.join( ' , ' ) : ''
+
+    let sqltext = 'SELECT * FROM files ' + strWhere + ' ' + strOrder + ' limit ' + limit
+
+    let params = jb && jb.params ? jb.params : []
+
+    dbrun(sqltext, params, rows => { 
+      
+      res.send( { result: true, rows: rows } ) 
+
+    }, err => { res.send( { result: false, error: err } ) } )
+
+  }, err => { res.send( { result: false, error: err } ) } )
+
+
+
+/*   if (req.query.style) {
+    
+      db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style] , (err,rows) => { sendRowsOrErr(res, err, rows) });
+
+  } else {
+    
+      db.all(`SELECT * FROM files limit 100`, [], (err,rows) => { sendRowsOrErr(res, err, rows) });
+
+  }
+ */
+});
+  
 function readCatalog(mFiles, curPath, curCat) {
   
   let filespath = path.join(curPath, curCat)
