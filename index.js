@@ -83,7 +83,7 @@ app.post('/files', function (req, res) {
 
   saveRequest(req, () => {
     
-    let jb = res.body
+    let jb = req.body
 
     let limit = jb && jb.limit ? jb.limit : 100
 
