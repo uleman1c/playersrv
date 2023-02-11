@@ -79,7 +79,7 @@
 
   });
   
-app.post('/songs', function (req, res) {
+app.post('/files', function (req, res) {
 
   saveRequest(req, () => {
     
@@ -97,7 +97,7 @@ app.post('/songs', function (req, res) {
 
     let params = jb && jb.params ? jb.params : []
 
-    dbrun(sqltext, params, rows => { 
+    dball(sqltext, params, rows => { 
       
       res.send( { result: true, rows: rows } ) 
 
@@ -279,9 +279,9 @@ app.get('/test', function (req, res) {
      
   })
   
-function dbrun(sqltext, params, callback, callbackerror) {
+  function dbrun(sqltext, params, callback, callbackerror) {
     
-    db.run(sqltext, params, (err, rows) => {
+    db.run(sqltext, params, err => {
     
       if (err) {
           
@@ -289,22 +289,39 @@ function dbrun(sqltext, params, callback, callbackerror) {
 
       } else {
           
-        callback( rows )
+        callback()
 
       }
 
     });
 }
 
+function dball(sqltext, params, callback, callbackerror) {
+    
+  db.all(sqltext, params, (err, rows) => {
+  
+    if (err) {
+        
+      callbackerror( err );
+
+    } else {
+        
+      callback( rows )
+
+    }
+
+  });
+}
+
 app.get('/addrequestsfields', function (req, res) {
 
   res.send( 'err' )
 
-  dbrun('ALTER TABLE requests ADD ip text;', [], rows => {
+  dbrun('ALTER TABLE requests ADD ip text;', [], () => {
 
-    dbrun('ALTER TABLE requests ADD song_id text;', [], rows => {
+    dbrun('ALTER TABLE requests ADD song_id text;', [], () => {
 
-      res.send( rows )
+      res.send( 'ok' )
 
     }, err => { res.send( err ) })
 
@@ -386,7 +403,7 @@ function saveRequest(req, callback, callbackerror) {
 
   ]
 
-  dbrun( sqltext, params, ( rows ) => { callback( rows ) }, err => { callbackerror( err ) })
+  dbrun( sqltext, params, () => { callback() }, err => { callbackerror( err ) })
 
 }
 
