@@ -197,49 +197,80 @@ app.get('/test', function (req, res) {
   
   
 
-/*   let filespath = path.join(__dirname, "files")
-
-  let mFiles = []
-
-  readCatalog(mFiles, filespath, '')
-
-  addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
- */ 
-/*
-    let sqltext = 'select * from requests'
-     db.all(sqltext, (err,rows) => {
-
-        if (err) {
-            
-          res.send( err );
-        } else {
-            
-          res.send( rows );
-        }
-
-      });
-*/
-
+  /*   let filespath = path.join(__dirname, "files")
   
-  //let sqltext = 'ALTER TABLE files ADD style text;' // update files set style = \'\', description = \'\''
-  let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
+    let mFiles = []
+  
+    readCatalog(mFiles, filespath, '')
+  
+    addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
+   */ 
+  /*
+      let sqltext = 'select * from requests'
+       db.all(sqltext, (err,rows) => {
+  
+          if (err) {
+              
+            res.send( err );
+          } else {
+              
+            res.send( rows );
+          }
+  
+        });
+  */
+  
+    
+    //let sqltext = 'ALTER TABLE requests ADD ip text;' // update files set style = \'\', description = \'\''
+    let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
+  
+       db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
+  
+          if (err) {
+              
+            res.send( err );
+          } else {
+              
+            res.send( 'ok' );
+          }
+  
+        });
+        
+     
+  })
+  
+function dbrun(sqltext, params, callback, callbackerror) {
+    
+    db.run(sqltext, params, (err, rows) => {
+    
+      if (err) {
+          
+        callbackerror( err );
 
-     db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
+      } else {
+          
+        callback( rows )
 
-        if (err) {
-            
-          res.send( err );
-        } else {
-            
-          res.send( 'ok' );
-        }
+      }
 
-      });
-      
-   
+    });
+}
+
+app.get('/addrequestsfields', function (req, res) {
+
+  dbrun('ALTER TABLE requests ADD ip text;', [], rows => {
+
+    dbrun('ALTER TABLE requests ADD song_id text;', [], rows => {
+
+      res.send( rows )
+
+    }, err => { res.send( err ) })
+
+  }, err => { res.send( err ) })
+    
 })
-
-app.get('/requests', function (req, res) {
+    
+    app.get('/requests', function (req, res) {
   
     let sqltext = 'select * from requests order by date desc'
      db.all(sqltext, (err,rows) => {
