@@ -85,23 +85,30 @@ app.post('/files', function (req, res) {
     
     let jb = req.body
 
+    let appId = jb && jb.appId ? jb.appId : ''
+
+    let newOnly = jb && jb.newOnly ? jb.newOnly : false
+
     let limit = jb && jb.limit ? jb.limit : 100
+    let random = jb && jb.random ? jb.random : false
 
-    console.log(JSON.parse(jb.where))
-
-    let arWhere = jb && jb.where ? jb.where : []
-    let arOrder = jb && jb.order ? jb.order : []
+    let arWhere = jb && jb.where ? JSON.parse(jb.where) : []
+    let arOrder = jb && jb.order ? JSON.parse(jb.order) : []
 
     let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
     let strOrder = arOrder.length > 0 ? 'order by ' + arOrder.join( ' , ' ) : ''
 
-    let sqltext = 'SELECT * FROM files ' + strWhere + ' ' + strOrder + ' limit ' + limit
+    let strNewOnly = newOnly ? 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' : ''
+
+    let sqltext = 'SELECT files.* FROM files ' + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
 
     let params = jb && jb.params ? jb.params : []
 
+    
+
     dball(sqltext, params, rows => { 
       
-      res.send( { result: true, rows: rows } ) 
+      res.send( { result: true, rows: random ? shuffle(rows) : rows } ) 
 
     }, err => { res.send( { result: false, error: err } ) } )
 
