@@ -338,22 +338,29 @@ app.get('/addrequestsfields', function (req, res) {
     
 })
     
-    app.get('/requests', function (req, res) {
+app.get('/requests', function (req, res) {
+
+  let sqltext = 'select * from requests order by date desc'
+    db.all(sqltext, (err,rows) => {
+
+      if (err) {
+          
+        res.send( err );
+      } else {
+          
+        res.send( rows );
+      }
+
+    });
+    
   
-    let sqltext = 'select * from requests order by date desc'
-     db.all(sqltext, (err,rows) => {
+})
 
-        if (err) {
-            
-          res.send( err );
-        } else {
-            
-          res.send( rows );
-        }
+app.get('/favorites', function (req, res) {
 
-      });
-      
-   
+  let sqltext = 'select * from favorites'
+  dball(sqltext, [], rows => { res.send( rows ) }, err => { res.send( err ) })
+  
 })
 
 app.get('/styles', function (req, res) {
