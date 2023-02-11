@@ -20,7 +20,7 @@
 
   app.get('/create', function (req, res) {
   
-    let sqltext = 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null)'
+    let sqltext = 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)'
     //let sqltext = 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null)'
 
     db.run(sqltext, (err,rows) => {
