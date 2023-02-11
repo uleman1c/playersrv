@@ -358,9 +358,34 @@ app.get('/requests', function (req, res) {
 
 app.get('/favorites', function (req, res) {
 
-  let sqltext = 'select * from favorites'
+  let sqltext = 'select favorites.id, favorites.file_id, files.name, files.ext, files.style, files.description '
+    + ' from favorites left join files on favorites.file_id = files.id'
   dball(sqltext, [], rows => { res.send( rows ) }, err => { res.send( err ) })
   
+})
+
+app.post('/favorites', function (req, res) {
+
+  let jb = req.body
+  
+  let params = [
+
+    uuid.v4(),
+    jb.appId,
+    jb.file_id
+
+  ]
+
+  saveRequest(req, () => {
+
+    dbrun("INSERT INTO favorites (?, ?, ?)", params, () => { res.send( { result: true } ) }, 
+    
+      err => { res.send( { result: false, error: err } ) } )
+
+  }, err => { res.send( { result: false, error: err } ) } )
+
+
+
 })
 
 app.get('/styles', function (req, res) {
