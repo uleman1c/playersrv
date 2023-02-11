@@ -87,7 +87,7 @@ app.post('/files', function (req, res) {
 
     let limit = jb && jb.limit ? jb.limit : 100
 
-    console.log(jb.where)
+    console.log(JSON.parse(jb.where))
 
     let arWhere = jb && jb.where ? jb.where : []
     let arOrder = jb && jb.order ? jb.order : []
