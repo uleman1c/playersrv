@@ -258,6 +258,8 @@ function dbrun(sqltext, params, callback, callbackerror) {
 
 app.get('/addrequestsfields', function (req, res) {
 
+  res.send( 'err' )
+
   dbrun('ALTER TABLE requests ADD ip text;', [], rows => {
 
     dbrun('ALTER TABLE requests ADD song_id text;', [], rows => {
@@ -327,24 +329,24 @@ app.get('/styles', function (req, res) {
   
 function saveRequest(req, callback, callbackerror) {
 
-  let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
+  let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?, ?)'
 
   let jb = req.body
 
-  db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), jb && jb.appId ? jb.appId : req.socket.remoteAddress, req.originalUrl, jb ? JSON.stringify(jb) : ''], (err,rows) => {
+  let params = [ 
+    
+    uuid.v4(), 
+    dateToYMDHMS(new Date()), 
 
-     if (err) {
-         
-      callbackerror( err )
+    jb && jb.appId ? jb.appId : req.socket.remoteAddress, 
+    req.originalUrl, 
+    jb ? JSON.stringify(jb) : '',
+    req.socket.remoteAddress,
+    req.query.id ? req.query.id : ''
 
-     } else {
-         
-      callback()
+  ]
 
-     }
-
-   })
-
+  dbrun( sqltext, params, ( rows ) => { callback( rows ) }, err => { callbackerror( err ) })
 
 }
 
