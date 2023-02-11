@@ -89,10 +89,19 @@ app.post('/files', function (req, res) {
 
     let newOnly = jb && jb.newOnly ? jb.newOnly : false
 
+    let favorites = jb && jb.favorites ? jb.favorites : false
+
     let limit = jb && jb.limit ? jb.limit : 100
     let random = jb && jb.random ? jb.random : false
 
     let arWhere = jb && jb.where ? JSON.parse(jb.where) : []
+
+    if (favorites) {
+
+      arWhere.push(' ifnull(favorites.id, 0) != 0 ')
+      
+    }
+
     let arOrder = jb && jb.order ? JSON.parse(jb.order) : []
 
     let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
