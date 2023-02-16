@@ -79,6 +79,17 @@
 
   });
   
+app.get('/shtrihcodes', function (req, res) {
+
+  res.send( { result: true, rows: [
+
+    { shtrihcode: '5000394116085', ref1: 'http://188.120.243.243/prn/bdgbdgbdgbd.pdf', ref2: 'http://188.120.243.243/prn/hdgjnfyjfjmfd.pdf' },
+    { shtrihcode: '5000394116044', ref1: 'http://188.120.243.243/prn/fnmdnblgyjfgds.pdf', ref2: 'http://188.120.243.243/prn/dhfkjllhdg.pdf' }
+
+    ] } )
+
+})
+
 app.post('/files', function (req, res) {
 
   saveRequest(req, () => {
