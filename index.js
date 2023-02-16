@@ -100,10 +100,19 @@ app.post('/files', function (req, res) {
 
     let newOnly = jb && jb.newOnly ? jb.newOnly : false
 
+    let favorites = jb && jb.favorites ? jb.favorites : false
+
     let limit = jb && jb.limit ? jb.limit : 100
     let random = jb && jb.random ? jb.random : false
 
     let arWhere = jb && jb.where ? JSON.parse(jb.where) : []
+
+    if (favorites) {
+
+      arWhere.push(' ifnull(favorites.id, 0) != 0 ')
+      
+    }
+
     let arOrder = jb && jb.order ? JSON.parse(jb.order) : []
 
     let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
@@ -111,7 +120,9 @@ app.post('/files', function (req, res) {
 
     let strNewOnly = newOnly ? 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' : ''
 
-    let sqltext = 'SELECT files.* FROM files ' + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
+    let sqltext = 'SELECT files.*, ifnull(favorites.id, 0) as favorite '
+      + ' FROM files left join favorites on favorites.file_id = files.id and favorites.appid = \'' + appId + '\' ' 
+      + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
 
     let params = jb && jb.params ? jb.params : []
 
@@ -369,9 +380,51 @@ app.get('/requests', function (req, res) {
 
 app.get('/favorites', function (req, res) {
 
-  let sqltext = 'select * from favorites'
-  dball(sqltext, [], rows => { res.send( rows ) }, err => { res.send( err ) })
+  let sqltext = 'select favorites.id, favorites.file_id, files.name, files.ext, files.style, files.description '
+    + ' from favorites left join files on favorites.file_id = files.id where favorites.appid = ?'
+  dball(sqltext, [req.query.appid], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
   
+})
+
+app.post('/favorites', function (req, res) {
+
+  let jb = req.body
+  
+  saveRequest(req, () => {
+
+    if (jb.mode == 'add') {
+      
+      let params = [
+
+        uuid.v4(),
+        jb.appId,
+        jb.file_id
+
+      ]
+
+      dbrun('INSERT INTO favorites VALUES (?, ?, ?)', params, () => { res.send( { result: true } ) }, 
+      
+        err => { res.send( { result: false, error: err } ) } )
+
+    } else {
+      
+      let params = [
+
+        jb.appId,
+        jb.file_id
+
+      ]
+
+      dbrun("DELETE FROM favorites where appid = ? and file_id = ?", params, () => { res.send( { result: true } ) }, 
+      
+        err => { res.send( { result: false, error: err } ) } )
+
+    }
+
+  }, err => { res.send( { result: false, error: err } ) } )
+
+
+
 })
 
 app.get('/styles', function (req, res) {
