@@ -83,8 +83,8 @@ app.get('/shtrihcodes', function (req, res) {
 
   res.send( { result: true, rows: [
 
-    { shtrihcode: '5000394116085', ref1: 'http://188.120.243.243/prn?id=045cea1e-db39-4fc7-bb88-b732a8a800fc', ref2: 'http://188.120.243.243/prn?id=04689f5b-634c-4b6a-84fe-2d14d7ebc81a' },
-    { shtrihcode: '5000394116044', ref1: 'http://188.120.243.243/prn/fnmdnblgyjfgds.pdf', ref2: 'http://188.120.243.243/prn/dhfkjllhdg.pdf' }
+    { shtrihcode: '5000394116085', ref1: 'http://188.120.243.243:3001/prn?id=045cea1e-db39-4fc7-bb88-b732a8a800fc', ref2: 'http://188.120.243.243:3001/prn?id=04689f5b-634c-4b6a-84fe-2d14d7ebc81a' },
+    { shtrihcode: '5000394116044', ref1: 'http://188.120.243.243:3001/prn/fnmdnblgyjfgds.pdf', ref2: 'http://188.120.243.243:3001/prn/dhfkjllhdg.pdf' }
 
     ] } )
 
@@ -97,7 +97,7 @@ app.get('/prn', function (req, res) {
   res.setHeader("Content-Type", "application/octet-stream")
 
   return res.download(filespath, encodeURIComponent(req.query.id + '.pdf'))
-  
+
 })
 
 app.post('/files', function (req, res) {
