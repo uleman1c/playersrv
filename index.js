@@ -394,11 +394,24 @@ app.get('/requests', function (req, res) {
 
 app.get('/users', function (req, res) {
 
+  const jr = req.query
+
   saveRequest(req, () => {
 
-    let sqltext = 'select * from users'
-    dball(sqltext, [], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
-      //req.query.appid
+    if (!jr.name) {
+      
+      res.send( { rows: [], message: 'name must be specified' } )
+
+    } else if (!jr.password) {
+      
+        res.send( { rows: [], message: 'password must be specified' } )
+  
+    } else {
+        
+      let sqltext = 'select * from users where name = ? and password = ?'
+      dball(sqltext, [jr.name.toLowerCase(), jr.password], rows => { res.send( { rows: rows } ) }, err => { res.send( { rows: [], error: err } ) })
+    }
+
   })  
 })
 
