@@ -410,7 +410,8 @@ app.get('/users', function (req, res) {
 
     } else if (!jr.password) {
       
-        res.send( { rows: [], message: 'password must be specified' } )
+      let sqltext = 'select id, name from users where name = ?'
+      dball(sqltext, [jr.name.toLowerCase()], rows => { res.send( { rows: rows } ) }, err => { res.send( { rows: [], error: err } ) })
   
     } else {
         
@@ -430,7 +431,7 @@ app.get('/adduser', function (req, res) {
     const params = [
 
       v4(),
-      jb.name,
+      jb.name.toLowerCase(),
       jb.password
 
     ]
