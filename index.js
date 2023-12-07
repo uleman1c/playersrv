@@ -7,6 +7,12 @@
   import cors from 'cors';
   import { join } from 'path';
   
+  import path from 'path';
+  import { fileURLToPath } from 'url';
+  
+  const __filename = fileURLToPath(import.meta.url);
+
+  const __dirname = path.dirname(__filename);
 
   var sqlite3 = sqlite3uv.verbose();
 
@@ -576,7 +582,7 @@ function saveRequest(req, callback, callbackerror) {
   
   });
   
-  app.listen( 3001, function () {
+  app.listen( 3005, function () {
       console.log('Player server ready');
   });
   
