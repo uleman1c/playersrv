@@ -582,7 +582,7 @@ function saveRequest(req, callback, callbackerror) {
   
   });
   
-  app.listen( 3005, function () {
+  app.listen( 3001, function () {
       console.log('Player server ready');
   });
   
