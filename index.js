@@ -1,15 +1,18 @@
-  var express = require('express');
+  import express from 'express';
   
-  var sqlite3 = require('sqlite3').verbose();
+  import sqlite3uv from 'sqlite3'
   
-  var uuid = require('uuid');
-  var bodyParser = require('body-parser')
-  var cors = require('cors')
-  const path = require('path')
+  import { v4 } from 'uuid';
+  import bodyParser from 'body-parser';
+  import cors from 'cors';
+  import { join } from 'path';
   
+
+  var sqlite3 = sqlite3uv.verbose();
+
   var db = new sqlite3.Database('player.db');
 
-  var fs = require('fs')
+  import { readdirSync, renameSync } from 'fs';
   
   var app = express();
   
@@ -20,7 +23,8 @@
 
   app.get('/create', function (req, res) {
   
-    let sqltext = 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)'
+    let sqltext = 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)'
+    //let sqltext = 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)'
     //let sqltext = 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null)'
 
     db.run(sqltext, (err,rows) => {
@@ -92,7 +96,7 @@ app.get('/shtrihcodes', function (req, res) {
 
 app.get('/prn', function (req, res) {
 
-  let filespath = path.join(__dirname, "prns", req.query.id + '.pdf')
+  let filespath = join(__dirname, "prns", req.query.id + '.pdf')
 
   res.setHeader("Content-Type", "application/octet-stream")
 
@@ -162,9 +166,9 @@ app.post('/files', function (req, res) {
   
 function readCatalog(mFiles, curPath, curCat) {
   
-  let filespath = path.join(curPath, curCat)
+  let filespath = join(curPath, curCat)
 
-  const dirEntries = fs.readdirSync(filespath, {withFileTypes: true})
+  const dirEntries = readdirSync(filespath, {withFileTypes: true})
 
     dirEntries.forEach(element => {
 
@@ -206,7 +210,7 @@ function addFileToBase(mFiles, index, callback, callbackerror) {
 
             if (rows.length == 0) {
 
-              let curId = uuid.v4()
+              let curId = v4()
 
               db.prepare("INSERT INTO files VALUES (?, ?, ?, ?, ?)")
                 .run(curId, curFile.name, curFile.ext, curFile.style, '', (err,rows) =>{
@@ -217,7 +221,7 @@ function addFileToBase(mFiles, index, callback, callbackerror) {
                     
                   } else {
 
-                    fs.renameSync(path.join(curFile.path, curFile.name + '.' + curFile.ext), path.join(__dirname, "files", curId + '.' + curFile.ext));
+                    renameSync(join(curFile.path, curFile.name + '.' + curFile.ext), join(__dirname, "files", curId + '.' + curFile.ext));
 
                     addFileToBase(mFiles, index + 1, callback, callbackerror) 
                     
@@ -305,7 +309,7 @@ app.get('/test', function (req, res) {
     //let sqltext = 'ALTER TABLE requests ADD ip text;' // update files set style = \'\', description = \'\''
     let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
   
-       db.run(sqltext, [uuid.v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
+       db.run(sqltext, [v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
   
           if (err) {
               
@@ -372,7 +376,7 @@ app.get('/addrequestsfields', function (req, res) {
     
 app.get('/requests', function (req, res) {
 
-  let sqltext = 'select * from requests order by date desc'
+  let sqltext = 'select * from requests order by date desc limit 100'
     db.all(sqltext, (err,rows) => {
 
       if (err) {
@@ -386,6 +390,39 @@ app.get('/requests', function (req, res) {
     });
     
   
+})
+
+app.get('/users', function (req, res) {
+
+  saveRequest(req, () => {
+
+    let sqltext = 'select * from users'
+    dball(sqltext, [], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
+      //req.query.appid
+  })  
+})
+
+app.get('/adduser', function (req, res) {
+
+  saveRequest(req, () => {
+
+    const jb = req.query
+
+    const params = [
+
+      v4(),
+      jb.name,
+      jb.password
+
+    ]
+
+
+
+    dbrun('INSERT INTO users VALUES (?, ?, ?)', params, () => { res.send( { result: true } ) }, 
+      
+    err => { res.send( { result: false, error: err } ) } )
+  })
+
 })
 
 app.get('/favorites', function (req, res) {
@@ -406,7 +443,7 @@ app.post('/favorites', function (req, res) {
       
       let params = [
 
-        uuid.v4(),
+        v4(),
         jb.appId,
         jb.file_id
 
@@ -461,7 +498,7 @@ app.get('/styles', function (req, res) {
             .all(req.query.id , (err,rows) => {
   
 
-                let filespath = path.join(__dirname, "files", req.query.id + '.' + rows[0].ext)
+                let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
 
                 res.setHeader("Content-Type", "application/octet-stream")
                 
@@ -482,7 +519,7 @@ function saveRequest(req, callback, callbackerror) {
 
   let params = [ 
     
-    uuid.v4(), 
+    v4(), 
     dateToYMDHMS(new Date()), 
 
     jb && jb.appId ? jb.appId : req.socket.remoteAddress, 
@@ -517,7 +554,7 @@ function saveRequest(req, callback, callbackerror) {
 
       var stmt = db.prepare("INSERT INTO files VALUES (?, ?, ?)");
   
-      stmt.run( uuid.v4(), name, ext , (err,rows) =>{
+      stmt.run( v4(), name, ext , (err,rows) =>{
   
           res.send(true);
       });
@@ -526,7 +563,7 @@ function saveRequest(req, callback, callbackerror) {
   
   });
   
-  app.listen( 3001, function () {
+  app.listen( 3005, function () {
       console.log('Player server ready');
   });
   
