@@ -138,7 +138,7 @@
       },
       { 
         text: 'ALTER TABLE favorites ADD user_id text', 
-        executed: '20231215143200' 
+        executed: '20231212000000' 
       },
     ]
 
@@ -154,7 +154,7 @@
           
         } else {
           
-          db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(Date()) + '\')', (err, rows) => {
+          db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(new Date()) + '\')', (err, rows) => {
 
             if (err) {
               
