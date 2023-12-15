@@ -27,25 +27,204 @@
   app.use(bodyParser.json({limit: '50mb'}))
   app.use(bodyParser.raw({limit: '50mb'}))
 
+  app.get('/alltables', function (req, res) {
+  
+    let sqltext = `SELECT name FROM sqlite_master WHERE type='table';`
+    db.all(sqltext, [], (err,rows) => { 
+
+      if (err) {
+              
+        res.send( err );
+      } else {
+          
+        res.send( rows );
+      }
+    })
+
+  })
+
+  app.get('/tableinfo', function (req, res) {
+  
+    let sqltext = `PRAGMA table_info("` + req.query.table + `")`
+    db.all(sqltext, [], (err,rows) => { 
+
+      if (err) {
+              
+        res.send( err )
+
+      } else {
+          
+        res.send( rows )
+
+      }
+    })
+
+  })
+
+  function runSql(arSqlTexts, index, callback) {
+    
+    if (index < arSqlTexts.length) {
+      
+      db.run(arSqlTexts[index].text, (err,rows) => {
+
+        if (err) {
+            
+          callback( err );
+
+        } else {
+            
+          runSql( arSqlTexts, index + 1, callback );
+        }
+
+      });
+
+    } else {
+      callback()
+    }
+
+  }
+
+  app.get('/createupdates', function (req, res) {
+
+    const arSqlTexts = [
+      { 
+        text: 'CREATE TABLE updates (id TEXT not null, date TEXT not null)', 
+      },
+      { 
+        text: 'INSERT INTO updates VALUES (\'' + v4()  + '\', \'20231214000000\')', 
+      },
+    ]
+
+    runSql(arSqlTexts, 0, err => {
+
+      if (err) {
+        
+        res.send( { success: false, error: err } )
+        
+      } else {
+        
+        res.send( { success: true } )
+      }
+
+
+    })
+
+
+
+  })
+  
   app.get('/create', function (req, res) {
   
-    let sqltext = 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)'
-    //let sqltext = 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)'
-    //let sqltext = 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null)'
+    const arSqlTexts = [
+      { 
+        text: 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null, ip TEXT not null, song_id TEXT not null)', 
+        executed: '20230201000000' 
+      },
+      { 
+        text: 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null, description TEXT not null, style TEXT not null)', 
+        executed: '20230201000000' 
+      },
+      { 
+        text: 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)', 
+        executed: '20230201000000' 
+      },
+      { 
+        text: 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)', 
+        executed: '20231201000000' 
+      },
+      { 
+        text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)', 
+        executed: '20231215000000' 
+      },
+      { 
+        text: 'ALTER TABLE favorites ADD user_id text not null', 
+        executed: '20231215000000' 
+      },
+    ]
 
-    db.run(sqltext, (err,rows) => {
+    db.all('SELECT MAX(date) as max_date FROM updates ', [] , (err,rows) => { 
+      
+      const arSqlTextsFiltered = arSqlTexts.filter(s => s.executed > rows[0].max_date)
+
+      runSql(arSqlTextsFiltered, 0, err => {
+
+        if (err) {
+          
+          res.send( { success: false, error: err } )
+          
+        } else {
+          
+          db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(Date()) + '\')', (err, rows) => {
+
+            if (err) {
+              
+              res.send( { success: false, error: err } )
+              
+            } else {
+              
+              res.send( { success: true } )
+            }
+      
+          })
+        }
+
+      })
+
+    });
+
+
+
+
+/*     requests = [
+      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":1,"name":"date","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":2,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":3,"name":"addr","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":4,"name":"body","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":5,"name":"ip","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
+      {"cid":6,"name":"song_id","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
+    ]
+ */
+
+
+/*     files = [
+      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":2,"name":"ext","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":3,"name":"description","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
+      {"cid":4,"name":"style","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
+    ]
+ */
+
+/*     favorites = [
+      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":1,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":2,"name":"file_id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
+    ]
+ */
+
+/*     users = [
+      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+      {"cid":2,"name":"password","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
+    ]
+ */
+
+/*     db.run(sqltext, (err,rows) => {
 
         if (err) {
             
           res.send( err );
         } else {
             
-          res.send( 'ok' );
+          res.send( rows );
         }
 
       });
   
-  });
+ */  
+
+    });
   
   function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
@@ -447,9 +626,11 @@ app.get('/adduser', function (req, res) {
 
 app.get('/favorites', function (req, res) {
 
+  const userId = req.query.userid
+
   let sqltext = 'select favorites.id, favorites.file_id, files.name, files.ext, files.style, files.description '
-    + ' from favorites left join files on favorites.file_id = files.id where favorites.appid = ?'
-  dball(sqltext, [req.query.appid], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
+    + ' from favorites left join files on favorites.file_id = files.id where' + (userId ? ' favorites.user_id = ?' : ' favorites.appid = ?')
+  dball(sqltext, [userId ? userId : req.query.appid], rows => { res.send( { rows: rows } ) }, err => { res.send( err ) })
   
 })
 
@@ -465,24 +646,27 @@ app.post('/favorites', function (req, res) {
 
         v4(),
         jb.appId,
-        jb.file_id
+        jb.file_id,
+        jb.userId || ''
 
       ]
 
-      dbrun('INSERT INTO favorites VALUES (?, ?, ?)', params, () => { res.send( { result: true } ) }, 
+      dbrun('INSERT INTO favorites VALUES (?, ?, ?, ?)', params, () => { res.send( { result: true } ) }, 
       
         err => { res.send( { result: false, error: err } ) } )
 
     } else {
       
+      const userId = jb.userid
+
       let params = [
 
-        jb.appId,
+        userId ? userId : jb.appId,
         jb.file_id
 
       ]
 
-      dbrun("DELETE FROM favorites where appid = ? and file_id = ?", params, () => { res.send( { result: true } ) }, 
+      dbrun("DELETE FROM favorites where " + (userId ? 'user_id' : 'appid') + " = ? and file_id = ?", params, () => { res.send( { result: true } ) }, 
       
         err => { res.send( { result: false, error: err } ) } )
 
@@ -517,12 +701,27 @@ app.get('/styles', function (req, res) {
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
+              const params = [
+                v4(),
+                dateToYMDHMS(new Date()),
+                req.query.appid,
+                req.query.userid || '',
+                req.query.id
+              ]
+
+              dbrun('INSERT INTO history VALUES (?, ?, ?, ?, ?)', params, () => { 
 
                 let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
 
                 res.setHeader("Content-Type", "application/octet-stream")
                 
                 return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
+
+              }, 
+      
+              err => { res.send( { result: false, error: err } ) } )
+      
+      
 
           }
         )
