@@ -134,11 +134,11 @@
       },
       { 
         text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)', 
-        executed: '20231215000000' 
+        executed: '20231212000000' 
       },
       { 
-        text: 'ALTER TABLE favorites ADD user_id text not null', 
-        executed: '20231215000000' 
+        text: 'ALTER TABLE favorites ADD user_id text', 
+        executed: '20231215143200' 
       },
     ]
 
