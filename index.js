@@ -724,7 +724,7 @@ app.get('/styles', function (req, res) {
               const params = [
                 v4(),
                 dateToYMDHMS(new Date()),
-                req.query.appid,
+                req.query.appid || '',
                 req.query.userid || '',
                 req.query.id
               ]
