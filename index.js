@@ -627,9 +627,11 @@ app.get('/adduser', function (req, res) {
 
     const jb = req.query
 
+    const userId = v4()
+
     const params = [
 
-      v4(),
+      userId,
       jb.name.toLowerCase(),
       jb.password
 
@@ -637,7 +639,7 @@ app.get('/adduser', function (req, res) {
 
 
 
-    dbrun('INSERT INTO users VALUES (?, ?, ?)', params, () => { res.send( { result: true } ) }, 
+    dbrun('INSERT INTO users VALUES (?, ?, ?)', params, () => { res.send( { result: true, id: userId } ) }, 
       
     err => { res.send( { result: false, error: err } ) } )
   })
