@@ -577,6 +577,26 @@ app.get('/requests', function (req, res) {
   
 })
 
+app.get('/history', function (req, res) {
+
+  let sqltext = 'select * from history order by date desc limit 100'
+    db.all(sqltext, (err,rows) => {
+
+      if (err) {
+          
+        res.send( err );
+      } else {
+          
+        res.send( rows );
+      }
+
+    });
+    
+  
+})
+
+
+
 app.get('/users', function (req, res) {
 
   const jr = req.query
