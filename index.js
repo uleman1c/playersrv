@@ -750,17 +750,20 @@ function insertHistory(params, callback) {
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
+              if (err) {
+                res.send( { result: false, error: err } )
+              } else {
+                
                 let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
 
                 res.setHeader("Content-Type", "application/octet-stream")
                 
                 return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
 
-              }, 
-      
-              err => { res.send( { result: false, error: err } ) } )
-         }
-        )
+              }
+
+         })
+    })
   })
   
 function saveRequest(req, callback, callbackerror) {
