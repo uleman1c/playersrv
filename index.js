@@ -723,22 +723,33 @@ app.get('/styles', function (req, res) {
    
 })
 
+function insertHistory(params, callback) {
+
+  const sqlParams = [
+    v4(),
+    dateToYMDHMS(new Date()),
+    params.appid || '',
+    params.userid || '',
+    params.id
+  ]
+
+  const sqltext = 'INSERT INTO history VALUES (?, ?, ?, ?, ?)'
+  db.run(sqltext, sqlParams, err => {
+
+    callback(err)
+
+  })
+
+
+  
+}
+
   app.get('/file', function (req, res) {
   
     saveRequest(req, () => {
         db.prepare(`SELECT * FROM files where id = ?`)
             .all(req.query.id , (err,rows) => {
   
-              const params = [
-                v4(),
-                dateToYMDHMS(new Date()),
-                req.query.appid || '',
-                req.query.userid || '',
-                req.query.id
-              ]
-
-              dbrun('INSERT INTO history VALUES (?, ?, ?, ?, ?)', params, () => { 
-
                 let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
 
                 res.setHeader("Content-Type", "application/octet-stream")
@@ -748,14 +759,8 @@ app.get('/styles', function (req, res) {
               }, 
       
               err => { res.send( { result: false, error: err } ) } )
-      
-      
-
-          }
+         }
         )
-    }, err => { res.send( err ) } )
-
-        
   })
   
 function saveRequest(req, callback, callbackerror) {
@@ -785,7 +790,21 @@ function saveRequest(req, callback, callbackerror) {
   
     saveRequest(req, () => {
     
-      res.send( { result: true } )
+      insertHistory(req.query, err => {
+
+        if (err) {
+          
+          res.send( { result: false, error: err } )
+
+        } else {
+          
+          res.send( { result: true } )
+        }
+
+
+
+      })
+
       
     }, err => { res.send( { result: false, error: err } ) } )
   
