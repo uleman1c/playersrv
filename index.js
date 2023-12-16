@@ -579,9 +579,13 @@ app.get('/requests', function (req, res) {
 
 app.get('/history', function (req, res) {
 
-  let sqltext = 'select * from history order by date desc limit 100'
+  const userId = req.query.userid
 
-  db.all(sqltext, (err, rows) => {
+  let sqltext = 'select history.id, history.file_id, files.name, files.ext, files.style, files.description '
+    + ' from history left join files on history.file_id = files.id where' + (userId ? ' history.user_id = ?' : ' history.appid = ?')
+    + ' order by date desc limit 100'
+
+  db.all(sqltext, [userId ? userId : req.query.appid], (err, rows) => {
 
     if (err) {
         
