@@ -581,7 +581,7 @@ app.get('/history', function (req, res) {
 
   const userId = req.query.userid
 
-  let sqltext = 'select history.id, history.file_id, files.name, files.ext, files.style, files.description '
+  let sqltext = 'select history.id, history.date, history.file_id, files.name, files.ext, files.style, files.description '
     + ' from history left join files on history.file_id = files.id where' + (userId ? ' history.user_id = ?' : ' history.appid = ?')
     + ' order by date desc limit 100'
 
