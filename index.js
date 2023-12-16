@@ -580,17 +580,19 @@ app.get('/requests', function (req, res) {
 app.get('/history', function (req, res) {
 
   let sqltext = 'select * from history order by date desc limit 100'
-    db.all(sqltext, (err,rows) => {
 
-      if (err) {
-          
-        res.send( err );
-      } else {
-          
-        res.send( rows );
-      }
+  db.all(sqltext, (err, rows) => {
 
-    });
+    if (err) {
+        
+      res.send( { error: err } );
+
+    } else {
+        
+      res.send( { rows } );
+    }
+
+  })
     
   
 })
