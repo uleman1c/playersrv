@@ -61,6 +61,38 @@
 
   })
 
+  app.get('/tablerecords', function (req, res) {
+  
+    const tableName = req.query.table
+    const limit = req.query.limit || 100
+    const offset = req.query.offset || 0
+
+    if (tableName) {
+      
+        db.all('SELECT * FROM ' + tableName + ' limit ' + limit + ' offset ' + offset, [] , (err,rows) => { 
+        
+          if (err) {
+            
+            res.send( { success: false, error: err } )
+
+          } else {
+            
+            res.send( { success: true, rows: rows } )
+          }
+  
+        
+        });
+  
+    } else {
+
+      res.send( { success: false, message: 'table required' } )
+
+    }
+
+  });
+  
+
+
   function runSql(arSqlTexts, index, callback) {
     
     if (index < arSqlTexts.length) {
@@ -151,6 +183,14 @@
       { 
         text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)', 
         executed: '20231217000000' 
+      },
+      { 
+        text: 'CREATE TABLE styles (id TEXT not null, name TEXT not null, comment TEXT not null)', 
+        executed: '20231217181200' 
+      },
+      { 
+        text: 'CREATE TABLE song_styles (id TEXT not null, song_id TEXT not null, style_id TEXT not null, importance INT not null)', 
+        executed: '20231217181200' 
       },
     ]
 
