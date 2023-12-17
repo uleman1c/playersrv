@@ -463,18 +463,20 @@ function dateToYMDHMS(date) {
 
 
 
-app.get('/test', function (req, res) {
+app.get('/addfiles', function (req, res) {
   
   
 
-  /*   let filespath = path.join(__dirname, "files")
+     let filespath = path.join(__dirname, "files")
   
     let mFiles = []
   
     readCatalog(mFiles, filespath, '')
   
     addFileToBase(mFiles, 0, () => { res.send( mFiles ) }, err => { res.send( err ) })
-   */ 
+    
+})
+
   /*
       let sqltext = 'select * from requests'
        db.all(sqltext, (err,rows) => {
@@ -489,6 +491,9 @@ app.get('/test', function (req, res) {
   
         });
   */
+  
+app.get('/test', function (req, res) {
+  
   
     
     //let sqltext = 'ALTER TABLE requests ADD ip text;' // update files set style = \'\', description = \'\''
