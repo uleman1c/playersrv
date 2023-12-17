@@ -506,9 +506,10 @@ app.get('/addfiles', function (req, res) {
   
 app.get('/test', function (req, res) {
   
+  res.send( { success: true } )
   
     
-    //let sqltext = 'ALTER TABLE requests ADD ip text;' // update files set style = \'\', description = \'\''
+/*     //let sqltext = 'ALTER TABLE requests ADD ip text;' // update files set style = \'\', description = \'\''
     let sqltext = 'INSERT INTO requests VALUES (?, ?, ?, ?, ?)'
   
        db.run(sqltext, [v4(), dateToYMDHMS(new Date()), 'sdgfsdfs', req.originalUrl, 'req.body'], (err,rows) => {
@@ -522,7 +523,7 @@ app.get('/test', function (req, res) {
           }
   
         });
-        
+ */        
      
   })
   
