@@ -140,6 +140,18 @@
         text: 'ALTER TABLE favorites ADD user_id text', 
         executed: '20231212000000' 
       },
+      { 
+        text: 'CREATE TABLE authors (id TEXT not null, name TEXT not null)', 
+        executed: '20231217000000' 
+      },
+      { 
+        text: 'CREATE TABLE albums (id TEXT not null, name TEXT not null, author_id TEXT not null)', 
+        executed: '20231217000000' 
+      },
+      { 
+        text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)', 
+        executed: '20231217000000' 
+      },
     ]
 
     db.all('SELECT MAX(date) as max_date FROM updates ', [] , (err,rows) => { 
