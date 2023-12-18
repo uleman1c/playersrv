@@ -97,7 +97,7 @@
       
       const record = records[index]
 
-      const sqlTextSearch = 'SELECT id from' + tableName + ' where id = ?'
+      const sqlTextSearch = 'SELECT id from ' + tableName + ' where id = ?'
       const paramsSearch = [record.id]
 
       db.all(sqlTextSearch, paramsSearch , (err,rows) => { 
@@ -112,13 +112,37 @@
 
             // update
             
-            modifyRecords(records, index + 1, callback)
+            modifyRecords(tableName, records, index + 1, callback)
 
           } else {
             
             // insert
 
-            modifyRecords(records, index + 1, callback)
+            const symbQ = []
+            const paramsInsert = []
+            for (var key in record) {
+             
+              paramsInsert.push(record[key])
+
+              symbQ.push('?')
+
+            }
+
+            const sqlTextInsert = 'INSERT INTO ' + tableName + ' VALUES (' + symbQ.join(',') + ')'
+
+            db.run(sqlTextInsert, paramsInsert, err => {
+
+              if (err) {
+                
+                callback(err)
+
+              } else {
+                
+                modifyRecords(tableName, records, index + 1, callback)
+
+              }
+
+            })
 
           }
 
@@ -128,7 +152,6 @@
       });
 
 /*       
-      const sqlTextInsert = 'INSERT INTO ' + tableName + ' VALUES (@@expr@@)'
       const sqlTextUpdate = 'UPDATE ' + tableName + ' SET @@expr@@ where id = ?'
 
  */
@@ -233,9 +256,9 @@
       
       const request = requests[index]
 
-      if (request.request == 'setObject') {
+      if (request.request == 'setObjects') {
         
-        setObjects(requests.parameters, 0, err => {
+        setObjects(request.parameters, 0, err => {
 
           if (err) {
 
