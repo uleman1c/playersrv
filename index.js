@@ -91,7 +91,7 @@
 
   });
   
-  function modifyRecord(records, index, callback) {
+  function modifyRecords(tableName, records, index, callback) {
     
     if (index < records.length) {
       
@@ -112,13 +112,13 @@
 
             // update
             
-            modifyRecord(records, index + 1, callback)
+            modifyRecords(records, index + 1, callback)
 
           } else {
             
             // insert
 
-            modifyRecord(records, index + 1, callback)
+            modifyRecords(records, index + 1, callback)
 
           }
 
@@ -159,7 +159,7 @@
     } 
     else {
 
-      modifyRecord(records, 0, err => {
+      modifyRecords(tableName, records, 0, err => {
 
           if (err) {
             
@@ -181,7 +181,42 @@
     
     if (index < params.objects.length) {
       
-      setObjects(params, index + 1, callback)
+      const object = params.objects[index]
+
+      if (object.Тип == 'Справочник') {
+
+        if (object.Вид == 'Стили') {
+
+          const tableName = 'styles'
+          const records = [
+            { id: object.Ссылка, name: object.Наименование, comment: object.Реквизиты.Комментарий }
+          ]
+          
+          modifyRecords(tableName, records, 0, err => {
+
+            if (err) {
+
+              callback(err)
+              
+            } else {
+              
+              setObjects(params, index + 1, callback)
+
+            }
+
+          })
+
+        } else {
+          
+          setObjects(params, index + 1, callback)
+
+        }
+        
+      } else {
+        
+        setObjects(params, index + 1, callback)
+
+      }
 
     } else {
       
