@@ -91,6 +91,166 @@
 
   });
   
+  function modifyRecord(records, index, callback) {
+    
+    if (index < records.length) {
+      
+      const record = records[index]
+
+      const sqlTextSearch = 'SELECT id from' + tableName + ' where id = ?'
+      const paramsSearch = [record.id]
+
+      db.all(sqlTextSearch, paramsSearch , (err,rows) => { 
+      
+        if (err) {
+            
+          callback( err )
+
+        } else {
+          
+          if (rows.length) {
+
+            // update
+            
+            modifyRecord(records, index + 1, callback)
+
+          } else {
+            
+            // insert
+
+            modifyRecord(records, index + 1, callback)
+
+          }
+
+        }
+
+    
+      });
+
+/*       
+      const sqlTextInsert = 'INSERT INTO ' + tableName + ' VALUES (@@expr@@)'
+      const sqlTextUpdate = 'UPDATE ' + tableName + ' SET @@expr@@ where id = ?'
+
+ */
+
+
+    } else {
+      
+      callback()
+
+    }
+
+  }
+
+  app.post('/tablerecords', function (req, res) {
+  
+    const tableName = req.query.table
+    const records = req.body.records
+
+    if (!tableName) {
+      
+      res.send( { success: false, message: 'table required' } )
+
+    } 
+    else if (!records || !records.length) {
+      
+      res.send( { success: false, message: 'records required' } )
+
+    } 
+    else {
+
+      modifyRecord(records, 0, err => {
+
+          if (err) {
+            
+            res.send( { success: false, error: err } )
+
+          } else {
+            
+            res.send( { success: true } )
+          }
+  
+      })
+
+    } 
+
+
+  });
+
+  function setObjects(params, index, callback) {
+    
+    if (index < params.objects.length) {
+      
+      setObjects(params, index + 1, callback)
+
+    } else {
+      
+      callback()
+
+    }
+    
+
+  }
+
+  function executeRequests(requests, index, callback) {
+   
+    if (index < requests.length) {
+      
+      const request = requests[index]
+
+      if (request.request == 'setObject') {
+        
+        setObjects(requests.parameters, 0, err => {
+
+          if (err) {
+
+            callback(err)
+
+          } else {
+
+            executeRequests(requests, index + 1, callback)
+
+          }
+            
+        })
+
+      } else {
+        
+        executeRequests(requests, index + 1, callback)
+
+      }
+
+    } else {
+      
+      callback()
+
+    }
+    
+  }
+
+  app.post('/objects', function (req, res) {
+  
+    const arBody = req.body
+
+    executeRequests(arBody, 0, err => {
+
+        if (err) {
+          
+          res.send( { success: false, error: err } )
+
+        } else {
+          
+          res.send( { success: true } )
+        }
+
+    })
+
+     
+
+
+  });
+
+  
 
 
   function runSql(arSqlTexts, index, callback) {
