@@ -397,6 +397,8 @@
               
             } else {
               
+              
+
               callback(  );
             }
 
@@ -412,150 +414,144 @@
     
   }
 
-  app.get('/updatetables', function (req, res) {
-  
-    createUpdatesTable(err => {
+function updatetables(callback) {
 
-      if (err) {
-        
-        res.send( { success: false, error: err } )
-        
-      } else {
-        
-        const arSqlTexts = [
-          { 
-            text: 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null, ip TEXT not null, song_id TEXT not null)', 
-            executed: '20230201000000' 
-          },
-          { 
-            text: 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null, description TEXT not null, style TEXT not null)', 
-            executed: '20230201000000' 
-          },
-          { 
-            text: 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)', 
-            executed: '20230201000000' 
-          },
-          { 
-            text: 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)', 
-            executed: '20231201000000' 
-          },
-          { 
-            text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)', 
-            executed: '20231212000000' 
-          },
-          { 
-            text: 'ALTER TABLE favorites ADD user_id text', 
-            executed: '20231212000000' 
-          },
-          { 
-            text: 'CREATE TABLE authors (id TEXT not null, name TEXT not null)', 
-            executed: '20231217000000' 
-          },
-          { 
-            text: 'CREATE TABLE albums (id TEXT not null, name TEXT not null, author_id TEXT not null)', 
-            executed: '20231217000000' 
-          },
-          { 
-            text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)', 
-            executed: '20231217000000' 
-          },
-          { 
-            text: 'CREATE TABLE styles (id TEXT not null, name TEXT not null, comment TEXT not null)', 
-            executed: '20231217181200' 
-          },
-          { 
-            text: 'CREATE TABLE song_styles (id TEXT not null, song_id TEXT not null, style_id TEXT not null, importance INT not null)', 
-            executed: '20231217181200' 
-          },
-        ]
+  createUpdatesTable(err => {
 
-        db.all('SELECT MAX(date) as max_date FROM updates ', [] , (err,rows) => { 
-          
-          const arSqlTextsFiltered = arSqlTexts.filter(s => s.executed > rows[0].max_date)
+    if (err) {
 
-          runSql(arSqlTextsFiltered, 0, err => {
+      callback( err )
 
-            if (err) {
-              
-              res.send( { success: false, error: err } )
-              
-            } else {
-              
-              db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(new Date()) + '\')', (err, rows) => {
+    } else {
 
-                if (err) {
-                  
-                  res.send( { success: false, error: err } )
-                  
-                } else {
-                  
-                  res.send( { success: true } )
-                }
-          
-              })
-            }
+      const arSqlTexts = [
+        {
+          text: 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null, ip TEXT not null, song_id TEXT not null)',
+          executed: '20230201000000'
+        },
+        {
+          text: 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null, description TEXT not null, style TEXT not null)',
+          executed: '20230201000000'
+        },
+        {
+          text: 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)',
+          executed: '20230201000000'
+        },
+        {
+          text: 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)',
+          executed: '20231201000000'
+        },
+        {
+          text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)',
+          executed: '20231212000000'
+        },
+        {
+          text: 'ALTER TABLE favorites ADD user_id text',
+          executed: '20231212000000'
+        },
+        {
+          text: 'CREATE TABLE authors (id TEXT not null, name TEXT not null)',
+          executed: '20231217000000'
+        },
+        {
+          text: 'CREATE TABLE albums (id TEXT not null, name TEXT not null, author_id TEXT not null)',
+          executed: '20231217000000'
+        },
+        {
+          text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)',
+          executed: '20231217000000'
+        },
+        {
+          text: 'CREATE TABLE styles (id TEXT not null, name TEXT not null, comment TEXT not null)',
+          executed: '20231217181200'
+        },
+        {
+          text: 'CREATE TABLE song_styles (id TEXT not null, song_id TEXT not null, style_id TEXT not null, importance INT not null)',
+          executed: '20231217181200'
+        },
+      ]
 
-          })
+      db.all('SELECT MAX(date) as max_date FROM updates ', [], (err, rows) => {
+
+        const arSqlTextsFiltered = arSqlTexts.filter(s => s.executed > rows[0].max_date)
+
+        runSql(arSqlTextsFiltered, 0, err => {
+
+          if (err) {
+
+            callback( err )
+
+          } else {
+
+            db.run('INSERT INTO updates VALUES (\'' + v4() + '\', \'' + dateToYMDHMS(new Date()) + '\')', (err, rows) => {
+
+              callback( err )
+
+            })
+          }
 
         })
-      }
 
-    });
+      })
+    }
 
-
-
-
-/*     requests = [
-      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":1,"name":"date","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":2,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":3,"name":"addr","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":4,"name":"body","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":5,"name":"ip","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
-      {"cid":6,"name":"song_id","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
-    ]
- */
+  })
+}
 
 
-/*     files = [
-      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":2,"name":"ext","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":3,"name":"description","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
-      {"cid":4,"name":"style","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
-    ]
- */
 
-/*     favorites = [
-      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":1,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":2,"name":"file_id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
-    ]
- */
 
-/*     users = [
-      {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-      {"cid":2,"name":"password","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
-    ]
- */
+  /*     requests = [
+        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":1,"name":"date","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":2,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":3,"name":"addr","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":4,"name":"body","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":5,"name":"ip","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
+        {"cid":6,"name":"song_id","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
+      ]
+   */
 
-/*     db.run(sqltext, (err,rows) => {
 
-        if (err) {
-            
-          res.send( err );
-        } else {
-            
-          res.send( rows );
-        }
+  /*     files = [
+        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":2,"name":"ext","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":3,"name":"description","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
+        {"cid":4,"name":"style","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
+      ]
+   */
 
-      });
+  /*     favorites = [
+        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":1,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":2,"name":"file_id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
+      ]
+   */
+
+  /*     users = [
+        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
+        {"cid":2,"name":"password","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
+      ]
+   */
+
+  /*     db.run(sqltext, (err,rows) => {
   
- */  
-
-    });
+          if (err) {
+              
+            res.send( err );
+          } else {
+              
+            res.send( rows );
+          }
   
+        });
+    
+   */
+
+
+
   function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
   
@@ -1439,22 +1435,25 @@ app.post('/upload', cors(), (req, res) => {
 
 
 
-app.listen( 3001, function () {
 
-  console.log('Player server ready');
+if (!existsSync(filesPath)) {
+  mkdirSync(filesPath)
 
-  if (!existsSync(filesPath)) {
-    mkdirSync(filesPath)
-  
-    console.log('Files created');
+  console.log('Files created');
 
-  }
+}
 
-  createUpdatesTable(err => {
+updatetables(err => {
 
-    console.log('Tables updated');
+  console.log('Tables updated');
+
+  app.listen(3001, function () {
+
+    console.log('Player server ready');
+
+
 
   });
-    
+
 })
 
