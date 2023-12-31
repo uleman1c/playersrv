@@ -1170,79 +1170,103 @@ function saveRequest(req, callback, callbackerror) {
   
   });
   
-  function writeToFile(id, reqbody, callback) {
+function writeToFile(fileExist, id, ext, reqbody, callback) {
 
-    let filespath = conn.attachments_path
+  if (fileExist) {
 
-    if(file_exist){
+    fs.appendFile(filesPath + path.delimiter + id + '.' + ext, reqbody, function (err, data) {
 
-        fs.appendFile(filespath + id + '.tmp', reqbody, function (err, data) {
+      callback(err)
 
-            if (err) {
+    })
 
-                callback(err)
+  } else {
 
-            } else {
+    fs.writeFile(filesPath + path.delimiter + id + '.' + ext, reqbody, function (err, data) {
 
-                callback()
+        callback(err)
 
-            }
-
-        })
-
-    } else {
-
-        fs.writeFile(filespath + id + '.tmp', reqbody, function (err, data) {
-
-            if (err) {
-
-                callback(err)
-
-            } else {
-
-                callback()
-
-            }
-
-        })
-    }
+    })
+  }
 }
 
+app.get('/upload', cors(), (req, res) => {
+
+  const fileNameSplitted = req.query.filename.split('.')
+
+  res.send( { ext: fileNameSplitted[fileNameSplitted.length - 1] } )
+
+})
+
+function sendErr(res, error, callback) {
+
+  if (err) {
+
+    res.send( { result: false, error } )
+    
+  } else {
+    
+    if (callback) {
+      
+      callback()
+    }
+
+  }
+  
+}
+
+app.post('/upload', cors(), (req, res) => {
+
+  var id = v4()
+  var filename = ''
+  var size = ''
+  req.rawHeaders.forEach((element, index, array) => {
+    if (element === 'id')
+      id = array[index + 1]
+
+    if (element === 'filename')
+      filename = array[index + 1]
+
+    if (element === 'size')
+      size = Number(array[index + 1])
+
+  })
+
+  const fileNameSplitted = filename.split('.')
+
+  const ext = fileNameSplitted.length = 1 ? '' : fileNameSplitted[fileNameSplitted.length - 1] 
+  const name = fileNameSplitted.length = 1 ? filename : fileNameSplitted.splice(fileNameSplitted.length - 1, 1).join('.')
+
+  db.prepare(`SELECT * FROM files where id = ?`)
+    .all(id, (err, rows) => {
+
+      sendErr(res, err, () => {
+
+        const fileExist = rows.length > 0
+
+        writeToFile(fileExist, id, ext, req.body, err => {
+
+          sendErr(res, err, () => {
+
+            if (!fileExist) {
+              
+              const sqlText = 'INSERT INTO files VALUES (?, ?, ?)'
+              db.run(sqlText, [id, name, ext], err => {
+
+                sendErr(res, err)
+
+              })
+
+            }
 
 
-  app.post('/upload', cors(), (req, res) => {
-
-    var id = v4()
-    var filename = ''
-    var size = ''
-    req.rawHeaders.forEach((element, index, array) => {
-        if(element === 'id')
-            id = array[index + 1]
-            
-        if(element === 'filename')
-            filename = array[index + 1]
-            
-        if(element === 'size')
-            size = Number(array[index + 1])
+          })
 
         })
 
-        db.prepare(`SELECT * FROM files where id = ?`)
-        .all(id , (err,rows) => {
+      })
 
-          if (err) {
-            res.send( { result: false, error: err } )
-          } else {
-            
-/*             let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
-
-            res.setHeader("Content-Type", "application/octet-stream")
-            
-            return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
- */
-          }
-
-     })
+    })
 
 
 
