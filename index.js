@@ -9,6 +9,8 @@
   
   import path from 'path';
   import { fileURLToPath } from 'url';
+
+  import fs from 'fs';
   
   const __filename = fileURLToPath(import.meta.url);
 
@@ -498,112 +500,52 @@ function updatetables(callback) {
   })
 }
 
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
 
+  while (0 !== currentIndex) {
 
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
 
-  /*     requests = [
-        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":1,"name":"date","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":2,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":3,"name":"addr","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":4,"name":"body","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":5,"name":"ip","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
-        {"cid":6,"name":"song_id","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
-      ]
-   */
-
-
-  /*     files = [
-        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":2,"name":"ext","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":3,"name":"description","type":"TEXT","notnull":0,"dflt_value":null,"pk":0},
-        {"cid":4,"name":"style","type":"TEXT","notnull":0,"dflt_value":null,"pk":0}
-      ]
-   */
-
-  /*     favorites = [
-        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":1,"name":"appid","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":2,"name":"file_id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
-      ]
-   */
-
-  /*     users = [
-        {"cid":0,"name":"id","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":1,"name":"name","type":"TEXT","notnull":1,"dflt_value":null,"pk":0},
-        {"cid":2,"name":"password","type":"TEXT","notnull":1,"dflt_value":null,"pk":0}
-      ]
-   */
-
-  /*     db.run(sqltext, (err,rows) => {
-  
-          if (err) {
-              
-            res.send( err );
-          } else {
-              
-            res.send( rows );
-          }
-  
-        });
-    
-   */
-
-
-
-  function shuffle(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
-  
-    while (0 !== currentIndex) {
-  
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-  
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-  
-    return array;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
   }
 
-  function sendRowsOrErr(res, err,rows) {
-          if (err) {
-            
-            res.send( { err: err } );
-          } else {
-            
-            res.send( { rows: shuffle(rows) } );
-          }
-  
-    
+  return array;
+}
+
+function sendRowsOrErr(res, err, rows) {
+
+  if (err) {
+
+    res.send( { success: false, message: err, err: err } )
+
+  } else {
+
+    res.send( { success: true, rows: rows } )
+
   }
 
-  app.get('/', function (req, res) {
-  
-    sendRowsOrErr(res, null, [])
+}
 
-/*     if (req.query.style) {
+app.get('/', function (req, res) {
 
-      db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style], (err, rows) => { sendRowsOrErr(res, err, rows) });
+  sendRowsOrErr(res, null, [])
 
-    } else {
+});
 
-      db.all(`SELECT * FROM files limit 100`, [], (err, rows) => { sendRowsOrErr(res, err, rows) });
-
-    }
- */
-  });
-  
 app.get('/shtrihcodes', function (req, res) {
 
-  res.send( { result: true, rows: [
+  res.send({
+    result: true, rows: [
 
-    { shtrihcode: '5000394116085', ref1: 'prn?id=045cea1e-db39-4fc7-bb88-b732a8a800fc', ref2: 'prn?id=04689f5b-634c-4b6a-84fe-2d14d7ebc81a' },
-    { shtrihcode: '5000394116044', ref1: 'prn/fnmdnblgyjfgds.pdf', ref2: 'prn/dhfkjllhdg.pdf' }
+      { shtrihcode: '5000394116085', ref1: 'prn?id=045cea1e-db39-4fc7-bb88-b732a8a800fc', ref2: 'prn?id=04689f5b-634c-4b6a-84fe-2d14d7ebc81a' },
+      { shtrihcode: '5000394116044', ref1: 'prn/fnmdnblgyjfgds.pdf', ref2: 'prn/dhfkjllhdg.pdf' }
 
-    ] } )
+    ]
+  })
 
 })
 
@@ -663,18 +605,6 @@ app.post('/files', function (req, res) {
 
   }, err => { res.send( { result: false, error: err } ) } )
 
-
-
-/*   if (req.query.style) {
-    
-      db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style] , (err,rows) => { sendRowsOrErr(res, err, rows) });
-
-  } else {
-    
-      db.all(`SELECT * FROM files limit 100`, [], (err,rows) => { sendRowsOrErr(res, err, rows) });
-
-  }
- */
 });
   
 function readCatalog(mFiles, curPath, curCat) {
@@ -1168,9 +1098,11 @@ function saveRequest(req, callback, callbackerror) {
   
 function writeToFile(fileExist, id, ext, reqbody, callback) {
 
+  const fullName = path.join(filesPath, id + '.' + ext)
+
   if (fileExist) {
 
-    fs.appendFile(filesPath + path.delimiter + id + '.' + ext, reqbody, function (err, data) {
+    fs.appendFile(fullName, reqbody, function (err, data) {
 
       callback(err)
 
@@ -1178,7 +1110,7 @@ function writeToFile(fileExist, id, ext, reqbody, callback) {
 
   } else {
 
-    fs.writeFile(filesPath + path.delimiter + id + '.' + ext, reqbody, function (err, data) {
+    fs.writeFile(fullName, reqbody, function (err, data) {
 
         callback(err)
 
@@ -1196,7 +1128,7 @@ app.get('/upload', cors(), (req, res) => {
 
 function sendErr(res, error, callback) {
 
-  if (err) {
+  if (error) {
 
     res.send( { result: false, error } )
     
@@ -1215,13 +1147,21 @@ app.post('/upload', cors(), (req, res) => {
 
   var id = v4()
   var filename = ''
+  var description = ''
+  var style = ''
   var size = ''
   req.rawHeaders.forEach((element, index, array) => {
     if (element === 'id')
       id = array[index + 1]
 
     if (element === 'filename')
-      filename = array[index + 1]
+      filename = decodeURIComponent(array[index + 1])
+
+    if (element === 'description')
+      description = decodeURIComponent(array[index + 1])
+
+    if (element === 'style')
+      style = decodeURIComponent(array[index + 1])
 
     if (element === 'size')
       size = Number(array[index + 1])
@@ -1230,8 +1170,16 @@ app.post('/upload', cors(), (req, res) => {
 
   const fileNameSplitted = filename.split('.')
 
-  const ext = fileNameSplitted.length = 1 ? '' : fileNameSplitted[fileNameSplitted.length - 1] 
-  const name = fileNameSplitted.length = 1 ? filename : fileNameSplitted.splice(fileNameSplitted.length - 1, 1).join('.')
+  const ext = fileNameSplitted.length == 1 ? '' : fileNameSplitted[fileNameSplitted.length - 1] 
+
+  let name = filename
+  if (fileNameSplitted.length > 1) {
+  
+    fileNameSplitted.splice(-1, 1)
+
+    name = fileNameSplitted.join('.')
+    
+  }
 
   db.prepare(`SELECT * FROM files where id = ?`)
     .all(id, (err, rows) => {
@@ -1246,10 +1194,10 @@ app.post('/upload', cors(), (req, res) => {
 
             if (!fileExist) {
               
-              const sqlText = 'INSERT INTO files VALUES (?, ?, ?)'
-              db.run(sqlText, [id, name, ext], err => {
+              const sqlText = 'INSERT INTO files VALUES (?, ?, ?, ?, ?)'
+              db.run(sqlText, [ id, name, ext, description, style ], err => {
 
-                sendErr(res, err)
+                sendRowsOrErr( res, err, [ { id, name, ext, description, style } ] )
 
               })
 
