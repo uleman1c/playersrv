@@ -18,8 +18,10 @@
 
   var db = new sqlite3.Database('player.db');
 
-  import { readdirSync, renameSync } from 'fs';
+  import { readdirSync, renameSync, existsSync, mkdir, mkdirSync } from 'fs';
   
+  const filesPath = join(__dirname, "files")
+
   var app = express();
   
   app.use(cors())
@@ -363,68 +365,115 @@
 
   })
   
-  app.get('/create', function (req, res) {
-  
-    const arSqlTexts = [
-      { 
-        text: 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null, ip TEXT not null, song_id TEXT not null)', 
-        executed: '20230201000000' 
-      },
-      { 
-        text: 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null, description TEXT not null, style TEXT not null)', 
-        executed: '20230201000000' 
-      },
-      { 
-        text: 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)', 
-        executed: '20230201000000' 
-      },
-      { 
-        text: 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)', 
-        executed: '20231201000000' 
-      },
-      { 
-        text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)', 
-        executed: '20231212000000' 
-      },
-      { 
-        text: 'ALTER TABLE favorites ADD user_id text', 
-        executed: '20231212000000' 
-      },
-      { 
-        text: 'CREATE TABLE authors (id TEXT not null, name TEXT not null)', 
-        executed: '20231217000000' 
-      },
-      { 
-        text: 'CREATE TABLE albums (id TEXT not null, name TEXT not null, author_id TEXT not null)', 
-        executed: '20231217000000' 
-      },
-      { 
-        text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)', 
-        executed: '20231217000000' 
-      },
-      { 
-        text: 'CREATE TABLE styles (id TEXT not null, name TEXT not null, comment TEXT not null)', 
-        executed: '20231217181200' 
-      },
-      { 
-        text: 'CREATE TABLE song_styles (id TEXT not null, song_id TEXT not null, style_id TEXT not null, importance INT not null)', 
-        executed: '20231217181200' 
-      },
-    ]
+  function createUpdatesTable(callback) {
 
-    db.all('SELECT MAX(date) as max_date FROM updates ', [] , (err,rows) => { 
-      
-      const arSqlTextsFiltered = arSqlTexts.filter(s => s.executed > rows[0].max_date)
+    let sqltext = `SELECT name FROM sqlite_master WHERE type='table' and name='updates';`
+    db.all(sqltext, [], (err,rows) => { 
 
-      runSql(arSqlTextsFiltered, 0, err => {
-
-        if (err) {
+      if (err) {
+              
+        callback( err );
+      } else {
+        
+        if (rows.length) {
           
-          res.send( { success: false, error: err } )
-          
+          callback( );
         } else {
+
+          const arSqlTexts = [
+            { 
+              text: 'CREATE TABLE updates (id TEXT not null, date TEXT not null)', 
+            },
+            { 
+              text: 'INSERT INTO updates VALUES (\'' + v4()  + '\', \'20230101000000\')', 
+            },
+          ]
+
+          runSql(arSqlTexts, 0, err => {
+
+            if (err) {
+              
+              callback( err );
+              
+            } else {
+              
+              callback(  );
+            }
+
+
+          })
           
-          db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(new Date()) + '\')', (err, rows) => {
+          
+        }
+
+      }
+    })
+
+    
+  }
+
+  app.get('/updatetables', function (req, res) {
+  
+    createUpdatesTable(err => {
+
+      if (err) {
+        
+        res.send( { success: false, error: err } )
+        
+      } else {
+        
+        const arSqlTexts = [
+          { 
+            text: 'CREATE TABLE requests (id TEXT not null, date TEXT not null, appid TEXT not null, addr TEXT not null, body TEXT not null, ip TEXT not null, song_id TEXT not null)', 
+            executed: '20230201000000' 
+          },
+          { 
+            text: 'CREATE TABLE files (id TEXT not null, name TEXT not null, ext TEXT not null, description TEXT not null, style TEXT not null)', 
+            executed: '20230201000000' 
+          },
+          { 
+            text: 'CREATE TABLE favorites (id TEXT not null, appid TEXT not null, file_id TEXT not null)', 
+            executed: '20230201000000' 
+          },
+          { 
+            text: 'CREATE TABLE users (id TEXT not null, name TEXT not null, password TEXT not null)', 
+            executed: '20231201000000' 
+          },
+          { 
+            text: 'CREATE TABLE history (id TEXT not null, date TEXT not null, appid TEXT not null, user_id TEXT not null, file_id TEXT not null)', 
+            executed: '20231212000000' 
+          },
+          { 
+            text: 'ALTER TABLE favorites ADD user_id text', 
+            executed: '20231212000000' 
+          },
+          { 
+            text: 'CREATE TABLE authors (id TEXT not null, name TEXT not null)', 
+            executed: '20231217000000' 
+          },
+          { 
+            text: 'CREATE TABLE albums (id TEXT not null, name TEXT not null, author_id TEXT not null)', 
+            executed: '20231217000000' 
+          },
+          { 
+            text: 'CREATE TABLE album_songs (id TEXT not null, album_id TEXT not null, song_id TEXT not null)', 
+            executed: '20231217000000' 
+          },
+          { 
+            text: 'CREATE TABLE styles (id TEXT not null, name TEXT not null, comment TEXT not null)', 
+            executed: '20231217181200' 
+          },
+          { 
+            text: 'CREATE TABLE song_styles (id TEXT not null, song_id TEXT not null, style_id TEXT not null, importance INT not null)', 
+            executed: '20231217181200' 
+          },
+        ]
+
+        db.all('SELECT MAX(date) as max_date FROM updates ', [] , (err,rows) => { 
+          
+          const arSqlTextsFiltered = arSqlTexts.filter(s => s.executed > rows[0].max_date)
+
+          runSql(arSqlTextsFiltered, 0, err => {
 
             if (err) {
               
@@ -432,13 +481,24 @@
               
             } else {
               
-              res.send( { success: true } )
-            }
-      
-          })
-        }
+              db.run('INSERT INTO updates VALUES (\'' + v4()  + '\', \'' + dateToYMDHMS(new Date()) + '\')', (err, rows) => {
 
-      })
+                if (err) {
+                  
+                  res.send( { success: false, error: err } )
+                  
+                } else {
+                  
+                  res.send( { success: true } )
+                }
+          
+              })
+            }
+
+          })
+
+        })
+      }
 
     });
 
@@ -526,16 +586,18 @@
 
   app.get('/', function (req, res) {
   
-    if (req.query.style) {
-      
-        db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style] , (err,rows) => { sendRowsOrErr(res, err, rows) });
-  
-    } else {
-      
-        db.all(`SELECT * FROM files limit 100`, [], (err,rows) => { sendRowsOrErr(res, err, rows) });
-  
-    }
+    sendRowsOrErr(res, null, [])
 
+/*     if (req.query.style) {
+
+      db.all('SELECT * FROM files where style = ? limit 100 ', [req.query.style], (err, rows) => { sendRowsOrErr(res, err, rows) });
+
+    } else {
+
+      db.all(`SELECT * FROM files limit 100`, [], (err, rows) => { sendRowsOrErr(res, err, rows) });
+
+    }
+ */
   });
   
 app.get('/shtrihcodes', function (req, res) {
@@ -1108,7 +1170,267 @@ function saveRequest(req, callback, callbackerror) {
   
   });
   
-  app.listen( 3001, function () {
-      console.log('Player server ready');
-  });
+  function writeToFile(id, reqbody, callback) {
+
+    let filespath = conn.attachments_path
+
+    if(file_exist){
+
+        fs.appendFile(filespath + id + '.tmp', reqbody, function (err, data) {
+
+            if (err) {
+
+                callback(err)
+
+            } else {
+
+                callback()
+
+            }
+
+        })
+
+    } else {
+
+        fs.writeFile(filespath + id + '.tmp', reqbody, function (err, data) {
+
+            if (err) {
+
+                callback(err)
+
+            } else {
+
+                callback()
+
+            }
+
+        })
+    }
+}
+
+
+
+  app.post('/upload', cors(), (req, res) => {
+
+    var id = v4()
+    var filename = ''
+    var size = ''
+    req.rawHeaders.forEach((element, index, array) => {
+        if(element === 'id')
+            id = array[index + 1]
+            
+        if(element === 'filename')
+            filename = array[index + 1]
+            
+        if(element === 'size')
+            size = Number(array[index + 1])
+
+        })
+
+        db.prepare(`SELECT * FROM files where id = ?`)
+        .all(id , (err,rows) => {
+
+          if (err) {
+            res.send( { result: false, error: err } )
+          } else {
+            
+/*             let filespath = join(__dirname, "files", req.query.id + '.' + rows[0].ext)
+
+            res.setHeader("Content-Type", "application/octet-stream")
+            
+            return res.download(filespath, encodeURIComponent(rows[0].name + '.' + rows[0].ext))
+ */
+          }
+
+     })
+
+
+
+/*     var pPool = null
+
+    var file_exist = false
+
+    sql.connect(config).then(pool => {
+
+        pPool = pool
+
+        return pool.request()
+            .input('id', id)
+            .query('select * from files where id = @id')
+
+    }).then(result => {
+
+        file_exist = result.recordset.length > 0
+
+        writeToFile(file_exist, id, req, () => {
+
+            if(file_exist) {
+
+                pPool.request()
+                    .input('id', id)
+                    .input('size', result.recordset[0].size + size)
+                    .query('update files set size = @size where id = @id')
+                    .then(result => {
+                        
+                        res.json({ 'success': true, 'message': '' })
+                    })
+                    .catch(err => {
+
+                        res.json({ 'success': false, 'message': err.message })
+                
+                    })
+
+            } else {
+
+                let words = filename.split('.')
+                let ext = words[words.length - 1]
+
+                words.splice(words.length - 1, 1)
+
+                filename = words.join('.')
+
+                pPool.request()
+                    .input('name', sql.Char, user)
+                    .query('select * from users where name = @name or id = @name')
+                    .then(result => {
+
+                        var user_id = result.recordset[0].id
+
+                        pPool.request()
+                            .input('id', sql.Char, id)
+                            .input('name', sql.Char, decodeURIComponent(filename))
+                            .input('ext', sql.Char, ext)
+                            .input('comment', sql.Char, '')
+                            .input('size', sql.Int, size)
+                            .input('created', sql.Char, datestr.dateToStr(new Date()))
+                            .input('is_deleted', sql.Bit, 0)
+                            .input('is_folder', sql.Bit, 0)
+                            .input('parent_id', sql.Char, uuidNil)
+                            .input('user_id', sql.Char, user_id)
+                            .input('hash', sql.Char, '')
+                            .query('insert into files (id, name, ext, comment, size, created, is_deleted, is_folder, parent_id, user_id, hash) '
+                                + 'values (@id, @name, @ext, @comment, @size, @created, @is_deleted, @is_folder, @parent_id, @user_id, @hash) ')
+                            .then(result => {
+
+                                if(owner_id){
+
+                                    if(owner_name === 'file_versions'){
+
+                                        pPool.request()
+                                            .input('file_id', sql.Char, owner_id)
+                                            .query('select top 1 * from file_versions where file_id = @file_id order by number desc')
+                                            .then(result => {
+
+                                                var lastNumber = 0
+                                                if(result.recordset.length > 0){
+                                                
+                                                    lastNumber = result.recordset[0].number
+                                                    
+                                                }
+
+
+                                                pPool.request()
+                                                    .input('id', sql.Char, id)
+                                                    .input('file_id', sql.Char, owner_id)
+                                                    .input('number', sql.SmallInt, lastNumber + 1)
+                                                    .input('comment', sql.Char, '')
+                                                    .input('created', sql.Char, datestr.dateToStr(new Date()))
+                                                    .input('is_deleted', sql.Bit, 0)
+                                                    .input('user_id', sql.Char, user_id)
+                                                    .query('insert into file_versions (id, file_id, number, comment, created, is_deleted, user_id) '
+                                                        + 'values (@id, @file_id, @number, @comment, @created, @is_deleted, @user_id) ')
+                                                    .then(result => {
+        
+                                                        res.json({ 'success': true, 'message': ''})
+                                                        
+                                                    })
+                                                    .catch(err => {
+        
+                                                        res.json({ 'success': false, 'message': err.message })
+        
+                                                    })
+                                                
+                                            })
+                                            .catch(err => {
+
+                                                res.json({ 'success': false, 'message': err.message })
+
+                                            })
+
+                                    } else {
+
+                                        pPool.request()
+                                            .input('id', sql.Char, uuidv4())
+                                            .input('file_id', sql.Char, id)
+                                            .input('owner_name', sql.Char, decodeURIComponent(owner_name))
+                                            .input('owner_id', sql.Char, owner_id)
+                                            .input('comment', sql.Char, '')
+                                            .input('created', sql.Char, datestr.dateToStr(new Date()))
+                                            .input('is_deleted', sql.Bit, 0)
+                                            .input('user_id', sql.Char, user_id)
+                                            .query('insert into file_owners (id, file_id, owner_name, owner_id, comment, created, is_deleted, user_id) '
+                                                + 'values (@id, @file_id, @owner_name, @owner_id, @comment, @created, @is_deleted, @user_id) ')
+                                            .then(result => {
+
+                                                res.json({ 'success': true, 'message': ''})
+                                                
+                                            })
+                                            .catch(err => {
+
+                                                res.json({ 'success': false, 'message': err.message })
+
+                                            })
+                                            
+                                    }
+
+                                } else {
+
+                                    res.json({ 'success': true, 'message': ''})
+
+                                }
+
+                            }).catch(err => {
+
+                                res.json({ 'success': false, 'message': err.message })
+
+                            })
+
+                    }).catch(err => {
+
+                        res.json({ 'success': false, 'message': err.message })
+
+                    })
+
+            }
+
+        }, (err) => {
+            
+            res.json({ 'success': false, 'message': err.message })
+
+        })
+
+    })
+ */
+})
+
+
+
+app.listen( 3001, function () {
+
+  console.log('Player server ready');
+
+  if (!existsSync(filesPath)) {
+    mkdirSync(filesPath)
   
+    console.log('Files created');
+
+  }
+
+  createUpdatesTable(err => {
+
+    console.log('Tables updated');
+
+  });
+    
+})
+
