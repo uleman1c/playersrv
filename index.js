@@ -566,6 +566,7 @@ app.post('/files', function (req, res) {
     let jb = req.body
 
     let appId = jb && jb.appId ? jb.appId : ''
+    let userId = jb && jb.userId ? jb.userId : ''
 
     let newOnly = jb && jb.newOnly ? jb.newOnly : false
 
@@ -578,13 +579,13 @@ app.post('/files', function (req, res) {
 
     if (favorites) {
 
-      arWhere.push(' ifnull(favorites.id, 0) != 0 ')
+      arWhere.push(' ifnull(favorites.file_id, 0) != 0 ')
       
     }
 
     if (newOnly) {
 
-      arWhere.push(' requests.song_id is null ')
+      arWhere.push(' history.file_id is null ')
       
     }
 
@@ -593,10 +594,12 @@ app.post('/files', function (req, res) {
     let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
     let strOrder = arOrder.length > 0 ? 'order by ' + arOrder.join( ' , ' ) : ''
 
-    let strNewOnly = 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' 
+    let strNewOnly = 'left join (select file_id from history where '  
+      + (userId ? 'history.user_id = \'' + userId + '\'' : 'history.appId = \'' + appId + '\'' )
+    + ' group by file_id ) as history on files.id = history.file_id ' 
 
-    let sqltext = 'SELECT files.*, ifnull(favorites.id, 0) as favorite, case when requests.song_id is null then 0 else 1 end as new '
-      + ' FROM files left join favorites on favorites.file_id = files.id and favorites.appid = \'' + appId + '\' ' 
+    let sqltext = 'SELECT files.*, ifnull(favorites.file_id, 0) as favorite, case when history.file_id is null then 1 else 0 end as new '
+      + ' FROM files left join (select file_id, appid from favorites group by file_id, appid) as favorites on favorites.file_id = files.id and favorites.appid = \'' + appId + '\' ' 
       + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
 
     let params = jb && jb.params ? jb.params : []
