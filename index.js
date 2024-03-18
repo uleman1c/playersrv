@@ -582,14 +582,20 @@ app.post('/files', function (req, res) {
       
     }
 
+    if (newOnly) {
+
+      arWhere.push(' requests.song_id is null ')
+      
+    }
+
     let arOrder = jb && jb.order ? JSON.parse(jb.order) : []
 
     let strWhere = arWhere.length > 0 ? 'where ' + arWhere.join( ' and ' ) : ''
     let strOrder = arOrder.length > 0 ? 'order by ' + arOrder.join( ' , ' ) : ''
 
-    let strNewOnly = newOnly ? 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' : ''
+    let strNewOnly = 'left join requests on files.id = requests.song_id and requests.appid = \'' + appId + '\'' 
 
-    let sqltext = 'SELECT files.*, ifnull(favorites.id, 0) as favorite '
+    let sqltext = 'SELECT files.*, ifnull(favorites.id, 0) as favorite, case when requests.song_id is null then 0 else 1 end as new '
       + ' FROM files left join favorites on favorites.file_id = files.id and favorites.appid = \'' + appId + '\' ' 
       + strNewOnly + ' ' + strWhere + ' ' + strOrder + ' limit ' + limit
 
